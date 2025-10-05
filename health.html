@@ -1,0 +1,114 @@
+<<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Personal Health Checkup — Debug Version</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; background: linear-gradient(135deg,#56ccf2,#2f80ed); height:100vh; margin:0; display:flex; align-items:center; justify-content:center; }
+    .card { background:#fff; width:360px; padding:24px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.15); text-align:center; }
+    input, select, button { width:100%; padding:10px; margin:8px 0; border-radius:8px; border:1px solid #ccc; font-size:15px; }
+    button { background:#2f80ed; color:#fff; border:none; cursor:pointer; }
+    .result { margin-top:14px; font-size:16px; color:#222; min-height:44px; }
+    .error { color:#a94442; }
+    small { color:#666; display:block; margin-top:6px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Personal Health Checkup</h2>
+    <input id="name" type="text" placeholder="Name (e.g. Lakshmi)" />
+    <input id="age" type="number" placeholder="Age (years)" />
+    <select id="gender">
+      <option value="">Select Gender</option>
+      <option value="Female">Female</option>
+      <option value="Male">Male</option>
+      <option value="Other">Other</option>
+    </select>
+    <input id="height" type="number" placeholder="Height (cm) — enter in cm" step="0.1" />
+    <input id="weight" type="number" placeholder="Weight (kg)" step="0.1" />
+    <button id="checkBtn">Check Health</button>
+
+    <div class="result" id="result"></div>
+    <small>Tip: If you're entering height in inches, convert to cm first (1 in = 2.54 cm).</small>
+  </div>
+
+  <script>
+    const showResult = (html, isError = false) => {
+      const res = document.getElementById('result');
+      res.innerHTML = html;
+      res.classList.toggle('error', isError);
+      console.log('UI result:', html);
+    };
+
+    document.getElementById('checkBtn').addEventListener('click', function () {
+      console.clear();
+      console.log('Check Health clicked');
+
+      const name = document.getElementById('name').value.trim();
+      const ageVal = document.getElementById('age').value.trim();
+      const gender = document.getElementById('gender').value;
+      const heightVal = document.getElementById('height').value.trim();
+      const weightVal = document.getElementById('weight').value.trim();
+
+      console.log({ name, ageVal, gender, heightVal, weightVal });
+
+      // Basic validation
+      if (!name || !ageVal || !gender || !heightVal || !weightVal) {
+        showResult('⚠️ Please fill all fields (name, age, gender, height, weight).', true);
+        return;
+      }
+
+      const age = parseInt(ageVal, 10);
+      const heightCm = parseFloat(heightVal);
+      const weightKg = parseFloat(weightVal);
+
+      if (isNaN(age) || age <= 0) {
+        showResult('⚠️ Enter a valid age.', true);
+        return;
+      }
+      if (isNaN(heightCm) || heightCm <= 0) {
+        showResult('⚠️ Enter a valid height in centimeters (cm).', true);
+        return;
+      }
+      if (isNaN(weightKg) || weightKg <= 0) {
+        showResult('⚠️ Enter a valid weight in kilograms (kg).', true);
+        return;
+      }
+
+      // Calculate BMI
+      const heightM = heightCm / 100;
+      const bmiValue = weightKg / (heightM * heightM);
+
+      if (!isFinite(bmiValue)) {
+        console.error('BMI calculation failed', { heightM, weightKg });
+        showResult('⚠️ Calculation error — please check height and weight.', true);
+        return;
+      }
+
+      const bmi = Math.round(bmiValue * 10) / 10; // 1 decimal place
+
+      let status = '';
+      let advice = '';
+      if (bmi < 18.5) {
+        status = 'Underweight';
+        advice = 'Eat a balanced diet with adequate protein and calories.';
+      } else if (bmi < 25) {
+        status = 'Normal weight';
+        advice = 'Keep up the good work — stay active and eat well.';
+      } else if (bmi < 30) {
+        status = 'Overweight';
+        advice = 'Consider regular exercise and reducing calorie-dense foods.';
+      } else {
+        status = 'Obese';
+        advice = 'Consult a healthcare professional for personalized guidance.';
+      }
+
+      const out = `👤 <strong>${name}</strong> (${gender}, ${age}y) — BMI: <strong>${bmi}</strong><br>Status: <strong>${status}</strong><br>💡 ${advice}`;
+      showResult(out, false);
+
+      console.log('BMI result:', { bmi, status });
+    });
+  </script>
+</body>
+</html>
